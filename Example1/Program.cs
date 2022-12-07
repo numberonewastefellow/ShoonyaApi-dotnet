@@ -71,7 +71,7 @@ namespace NorenRestSample
                 //dont do anything till we get a login response         
                 Thread.Sleep(5);
             }
-
+            return;
             bool dontexit = true;
             while (dontexit)
             {
