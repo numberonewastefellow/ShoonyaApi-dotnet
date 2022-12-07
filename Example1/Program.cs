@@ -4,47 +4,48 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using System.Reflection;
+using System.Security.Principal;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using NorenRestApiWrapper;
 
 namespace NorenRestSample
-{    
+{
     public static class Program
     {
         #region dev  credentials
 
         public const string endPoint = "https://api.shoonya.com/NorenWClientTP/";
         public const string wsendpoint = "wss://api.shoonya.com/NorenWSTP/";
-        public const string uid = "";
-        public const string actid = "";
-        public const string pwd = "";
+        public const string uid = "FA54445";
+        public const string actid = "FA54445";
+        public const string pwd = "Bank@#1234";
         public const string factor2 = dob;
-        public const string pan = "";
-        public const string dob = "";
+        public const string pan = "BCSPB0069B";
+        public const string dob = "09041990";
         public const string imei = "";
-        public const string vc = "";
-        
-        public const string appkey = "";
+        public const string vc = "FA54445_U";
+
+        public const string appkey = "3648cc7ed3814f05e3d462e4291f5e09";
         public const string newpwd = "";
         #endregion
 
 
         public static bool loggedin = false;
 
-        
+
         public static void OnStreamConnect(NorenStreamMessage msg)
         {
             Program.loggedin = true;
             nApi.SubscribeOrders(Handlers.OnOrderUpdate, uid);
 
-            for(var i= 52120; i < 20; i++)
+            for (var i = 52120; i < 20; i++)
                 nApi.SubscribeToken("NFO", i.ToString());
-            
+
         }
         public static NorenRestApi nApi = new NorenRestApi();
-        
+
         static void Main(string[] args)
         {
             LoginMessage loginMessage = new LoginMessage();
@@ -56,6 +57,10 @@ namespace NorenRestSample
             loginMessage.vc = vc;
             loginMessage.source = "API";
             loginMessage.appkey = appkey;
+            var toptpKey = "Y7UMQ6623V236S65A7B2GB5IW6P35E3N";
+
+            loginMessage.factor2 = new Totp(toptpKey).AuthenticationCode;
+
             nApi.SendLogin(Handlers.OnAppLoginResponse, endPoint, loginMessage);
 
             nApi.SessionCloseCallback = Handlers.OnAppLogout;
@@ -65,11 +70,11 @@ namespace NorenRestSample
             {
                 //dont do anything till we get a login response         
                 Thread.Sleep(5);
-            }          
-            
+            }
+
             bool dontexit = true;
-            while(dontexit)
-            {                
+            while (dontexit)
+            {
                 var input = Console.ReadLine();
                 var opts = input.Split(' ');
                 foreach (string opt in opts)
@@ -152,7 +157,7 @@ namespace NorenRestSample
 
                             //start and end time are optional
                             //here we are getting one day's data
-                            nApi.SendGetTPSeries(Handlers.OnResponseNOP, "NSE", "22", start.ToString() );
+                            nApi.SendGetTPSeries(Handlers.OnResponseNOP, "NSE", "22", start.ToString());
                             //to check for 5 min interval
                             //nApi.SendGetTPSeries(Handlers.OnResponseNOP, "NSE", "22", start.ToString(), null , "5" );
                             break;
@@ -174,8 +179,8 @@ namespace NorenRestSample
                         case "BM":
                             ActionGetBasketMargin();
                             break;
-                        case "FP":                            
-                            nApi.SendForgotPassword(Handlers.OnResponseNOP,endPoint, uid, pan, dob);
+                        case "FP":
+                            nApi.SendForgotPassword(Handlers.OnResponseNOP, endPoint, uid, pan, dob);
                             break;
                         case "WU":
                             nApi.UnSubscribeToken("NSE", "22");
@@ -202,15 +207,15 @@ namespace NorenRestSample
                             break;
                     }
                 }
-                
+
 
                 //var kp = Console.ReadKey();
                 //if (kp.Key == ConsoleKey.Q)
                 //    dontexit = false;
                 //Console.WriteLine("Press q to exit.");
-            }            
+            }
         }
-        
+
 
         public static DateTime ConvertFromUnixTimestamp(double timestamp)
         {
@@ -280,7 +285,7 @@ namespace NorenRestSample
             order.qty = "10";
             order.dscqty = "0";
             order.prc = "100.5";
-            
+
             order.prd = "I";
             order.trantype = "B";
             order.prctyp = "LMT";
@@ -304,8 +309,8 @@ namespace NorenRestSample
 
             order.prd = "I";
             order.trantype = "B";
-            order.prctyp = "LMT";           
-            
+            order.prctyp = "LMT";
+
             nApi.SendGetOrderMargin(Handlers.OnResponseNOP, order);
         }
 
